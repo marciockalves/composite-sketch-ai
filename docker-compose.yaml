@@ -1,0 +1,63 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
+    pull_policy: always
+    tty: true
+    restart: unless-stopped
+    entrypoint: /bin/sh
+    command:
+      - "-c"
+      - |
+        ollama serve &
+        sleep 5
+        ollama pull llama3.1
+        wait
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  comfyui:
+    image: yanwk/comfyui-boot:latest
+    container_name: comfyui
+    ports:
+      - "8188:8188"
+    volumes:
+      - ./comfyui/models:/home/runner/ComfyUI/models
+      - ./comfyui/output:/home/runner/ComfyUI/output
+      - ./comfyui/input:/home/runner/ComfyUI/input
+      - ./comfyui/custom_nodes:/home/runner/ComfyUI/custom_nodes
+    environment:
+      - "CLI_ARGS=--listen 0.0.0.0"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    volumes:
+      - ./open-webui:/app/backend/data
+    depends_on:
+      - ollama
+    ports:
+      - 3000:8080
+    environment:
+      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      - 'WEBUI_SECRET_KEY=sua_chave_secreta_aqui'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

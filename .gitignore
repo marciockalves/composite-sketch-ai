@@ -8,3 +8,22 @@ wheels/
 
 # Virtual environments
 .venv
+*$py.class
+
+ollama/
+open-webui/
+
+# Ignora os modelos, inputs e outputs do ComfyUI
+# Mantemos as pastas, mas ignoramos o conteúdo pesado
+comfyui/models/
+comfyui/output/
+comfyui/input/
+comfyui/custom_nodes/
+
+
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+core/output_images/
